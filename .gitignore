@@ -1,0 +1,4 @@
+node_modules/*
+querystringparser.sublime-workspace
+querystringparser.sublime-project
+npm-debug.log
