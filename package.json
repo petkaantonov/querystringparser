@@ -38,6 +38,7 @@
     "grunt-cli": "~0.1.9",
     "expect.js": "latest",
     "qs": "latest",
+    "bluebird": "~0.10",
     "benchmark": "latest"
   },
   "readmeFilename": "README.md",

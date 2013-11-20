@@ -1,35 +1,19 @@
-var querystringparser = require("../js/querystringparser.js");
-var Benchmark = require("benchmark");
-var qs = require("qs");
-var assert = require("assert");
-var l;
-var now;
-var queryStr;
-var count = 450000;
+var cp = require("child_process");
+var B = require("bluebird");
 
-queryStr = 'user[name][first]=tj&user[name][last]=holowaychuk';
 
-l = 50000;
-
-while(l--) {
-    qs.parse(queryStr);
-    querystringparser.parse(queryStr);
-}
+var stdio = [
+    'ignore',
+    process.stdout,
+    process.stderr
+];
 
 function suite(queryStr) {
-    console.log("Running suite with query string: ");
-    console.log("");
-    console.log(queryStr.match(/[\d\D]{1,80}/g).join("\n"));
-    console.log("");
-    var suite = new Benchmark.Suite();
-    suite.add("querystringparser", function() {
-        querystringparser.parse(queryStr);
-    })
-    .add("qs", function(){
-        qs.parse(queryStr);
-    }).on("cycle", function(e){
-        console.log("" + e.target);
-    }).run();
+    var d = B.pending();
+    var args = ["--expose_gc", "base.js", queryStr];
+    var p = cp.spawn("node", args, {stdio: stdio});
+    p.on('exit', d.fulfill.bind(d));
+    return d.promise;
 }
 
 function printPlatform() {
@@ -53,9 +37,16 @@ function printPlatform() {
 
 printPlatform();
 
-suite('a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3');
+suite('a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3')
+.then(function(){
+    return suite('foo=bar');
+})
+.then(function(){
+    return suite('user[name][first]=tj&user[name][last]=holowaychuk');
+})
+.then(function(){
+    return suite('a[]=1&a[]=2&a[]=3');
+});
 
-suite('foo=bar');
-suite('user[name][first]=tj&user[name][last]=holowaychuk');
-suite('a[]=1&a[]=2&a[]=3');
+
 

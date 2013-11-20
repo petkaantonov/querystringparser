@@ -1,13 +1,38 @@
+"use strict";
+module.exports = QueryStringParser;
+
 var rplus = /\+/g;
+var rint = /^[0-9]+$/;
 var isArray = Array.isArray;
 var haveProp = {}.hasOwnProperty;
 
-var QueryStringParser = {
-    parse: parse,
-    maxLength: 1024 * 1024 * 2
+function QueryStringParser() {
+    this.containsSparse = false;
+    this.cacheKey = "";
+    this.cacheVal = null;
+}
+
+QueryStringParser.maxLength = 32768;
+QueryStringParser.maxDepth = 4;
+QueryStringParser.maxKeys = 256;
+
+QueryStringParser.parse = function QueryStringParser$Parse(str) {
+    if (typeof str === "string") {
+        var maxLength = QueryStringParser.maxLength;
+        if (str.length > maxLength) {
+            throw new RangeError(
+                "str is too large (" +
+                "QueryStringParser.maxLength=" + maxLength + ")"
+            );
+        }
+        var parser = new QueryStringParser();
+        return parser.parseString(str);
+    }
+    return {};
 };
 
-function decode(str, shouldDecode, containsPlus) {
+QueryStringParser.prototype.decode =
+function QueryStringParser$decode(str, shouldDecode, containsPlus) {
     if (shouldDecode === false) return str;
     if (containsPlus === true) str = str.replace(rplus, " ");
     try {
@@ -16,11 +41,11 @@ function decode(str, shouldDecode, containsPlus) {
     catch (e) {
         return str;
     }
-}
+};
 
 //Returns a valid index into an array or -1
-var rint = /^[0-9]+$/;
-function maybeArrayIndex(str, arrayLength) {
+QueryStringParser.prototype.maybeArrayIndex =
+function QueryStringParser$maybeArrayIndex(str, arrayLength) {
     var len = str.length;
     //Empty string I.E. direct brackets [] means index will be .length
     if (len === 0) {
@@ -46,28 +71,13 @@ function maybeArrayIndex(str, arrayLength) {
         }
     }
     return -1;
-}
+};
 
-
-function parse(str) {
-    if (typeof str === "string") {
-        if (str.length > QueryStringParser.maxLength) {
-            throw new RangeError(
-                "str is too long (" +
-                "QueryStringParser.maxLength=" + QueryStringParser.maxLength +
-                ")"
-            );
-        }
-        return parseString(str);
-    }
-    return {};
-}
-
-
-function getSlot(dictionary, prevKey, curKey) {
+QueryStringParser.prototype.getSlot =
+function QueryStringParser$getSlot(dictionary, prevKey, curKey) {
     var slot;
     if (!(haveProp.call(dictionary, prevKey))) {
-        var index = maybeArrayIndex(curKey, 0);
+        var index = this.maybeArrayIndex(curKey, 0);
         if (index > -1) {
             slot = [];
         }
@@ -80,22 +90,21 @@ function getSlot(dictionary, prevKey, curKey) {
         slot = dictionary[prevKey];
     }
     return slot;
-}
-//prevKey = "abc"
-//curKey = ""
-//curKey = "asd" abc[asd]=3
-//a[asd][]=1&a[asd][]=2&a[asd][]=3
-var containsSparse = false;
-function placeNestedValue(dictionary, key, value, i, prevKey, curKey) {
-    var slot = getSlot(dictionary, prevKey, curKey);
+};
+
+QueryStringParser.prototype.placeNestedValue =
+function QueryStringParser$placeNestedValue
+(dictionary, key, value, i, prevKey, curKey) {
+    var slot = this.getSlot(dictionary, prevKey, curKey);
     var index = -1;
 
     if (isArray(slot)) {
-        index = maybeArrayIndex(curKey, slot.length);
+        index = this.maybeArrayIndex(curKey, slot.length);
     }
 
     var len = key.length;
     var depth = 2;
+    var maxDepth = QueryStringParser.maxDepth;
     var start = -1;
     for (; i < len; ++i) {
         var ch = key.charCodeAt(i);
@@ -108,14 +117,14 @@ function placeNestedValue(dictionary, key, value, i, prevKey, curKey) {
             curKey = start === i ? "" : key.substring(start, i);
             start = -1;
             depth++;
-            if (depth > MAX_KEY_DEPTH) {
-                throw new RangeError("The maximum amount of nested keys is " +
-                    MAX_KEY_DEPTH );
+            if (depth > maxDepth) {
+                throw new RangeError("Nesting depth of keys is too large " +
+                    "(QueryStringParser.maxDepth="+maxDepth+")" );
             }
-            slot = getSlot(slot, prevKey, curKey);
+            slot = this.getSlot(slot, prevKey, curKey);
 
             index = isArray(slot)
-                ? maybeArrayIndex(curKey, slot.length)
+                ? this.maybeArrayIndex(curKey, slot.length)
                 : -1;
         }
     }
@@ -127,19 +136,18 @@ function placeNestedValue(dictionary, key, value, i, prevKey, curKey) {
                 slot.push(value);
             }
             else {
-                containsSparse = true;
+                this.containsSparse = true;
                 slot[index] = value;
             }
         }
     }
     else {
-        insert(slot, curKey, value);
+        this.insert(slot, curKey, value);
     }
-}
+};
 
-var cacheKey = "";
-var cacheVal = null;
-function insert(dictionary, key, value) {
+QueryStringParser.prototype.insert =
+function QueryStringParser$insert(dictionary, key, value) {
     var ret = null;
     if (haveProp.call(dictionary, key)) {
         var prev = dictionary[key];
@@ -156,9 +164,10 @@ function insert(dictionary, key, value) {
         dictionary[key] = value;
     }
     return ret;
-}
+};
 
-function push(dictionary, key, value) {
+QueryStringParser.prototype.push =
+function QueryStringParser$push(dictionary, key, value) {
     var ret = null;
     if (haveProp.call(dictionary, key)) {
         var prev = dictionary[key];
@@ -170,12 +179,13 @@ function push(dictionary, key, value) {
         dictionary[key] = ret;
     }
     return ret;
-}
+};
 
-function maybePlaceNestedValue(dictionary, key, value) {
+QueryStringParser.prototype.maybePlaceNestedValue =
+function QueryStringParser$maybePlaceNestedValue(dictionary, key, value) {
     var len = key.length;
     if (key.charCodeAt(len - 1) !== RIGHT) {
-        placeValue(dictionary, key, value, CERTAINLY_NOT_NESTED);
+        this.placeValue(dictionary, key, value, CERTAINLY_NOT_NESTED);
         return;
     }
     var start = -1;
@@ -189,57 +199,58 @@ function maybePlaceNestedValue(dictionary, key, value) {
 
         if (ch === LEFT) {
             start = i + 1;
-            prevKey = key.substring(0, i);
+            prevKey = key.slice(0, i);
         }
         else if (ch === RIGHT) {
             if (start < 0) {
-                placeValue(dictionary, key, value, CERTAINLY_NOT_NESTED);
+                this.placeValue(dictionary, key, value, CERTAINLY_NOT_NESTED);
                 return;
             }
-            curKey = start === i ? "" : key.substring(start, i);
+            curKey = start === i ? "" : key.slice(start, i);
             i++;
             break;
         }
     }
 
     if (curKey === void 0) {
-        placeValue(dictionary, key, value, CERTAINLY_NOT_NESTED);
+        this.placeValue(dictionary, key, value, CERTAINLY_NOT_NESTED);
         return;
     }
 
     if (curKey === "" && value !== "" && i === len) {
         //speed up key[]=1&key[]=2&key[]=3&key[]=4...
-        if (key === cacheKey) {
-            cacheVal.push(value);
+        if (key === this.cacheKey) {
+            this.cacheVal.push(value);
         }
         else {
-            cacheKey = key;
-            cacheVal = push(dictionary, prevKey, value);
+            this.cacheKey = key;
+            this.cacheVal = this.push(dictionary, prevKey, value);
         }
     }
     else {
-        placeNestedValue(dictionary, key, value, i, prevKey, curKey);
+        this.placeNestedValue(dictionary, key, value, i, prevKey, curKey);
     }
-}
+};
 
-function placeValue(dictionary, key, value, possiblyNested) {
-
+QueryStringParser.prototype.placeValue =
+function QueryStringParser$placeValue(dictionary, key, value, possiblyNested) {
     if (possiblyNested === MIGHT_BE_NESTED) {
-        maybePlaceNestedValue(dictionary, key, value);
+        this.maybePlaceNestedValue(dictionary, key, value);
         return;
     }
-    if (key === cacheKey) {
-        cacheVal.push(value);
+    if (key === this.cacheKey) {
+        this.cacheVal.push(value);
         return;
     }
-    var cache = insert(dictionary, key, value);
+    var cache = this.insert(dictionary, key, value);
     if (cache !== null) {
-        cacheKey = key;
-        cacheVal = cache;
+        this.cacheKey = key;
+        this.cacheVal = cache;
     }
-}
+};
 
-function compact(obj) {
+QueryStringParser.prototype.compact =
+function QueryStringParser$compact(obj) {
     if (isArray(obj)) {
         var ret = [];
         var keys = Object.keys(obj);
@@ -252,17 +263,18 @@ function compact(obj) {
         var keys = Object.keys(obj);
         for( var i = 0, len = keys.length; i < len; ++i ) {
             var key = keys[i];
-            obj[key] = compact(obj[key]);
+            obj[key] = this.compact(obj[key]);
         }
     }
     else {
         return obj;
     }
-}
+};
 
-function parseString(str) {
-    containsSparse = false;
-    cacheKey = "";
+QueryStringParser.prototype.parseString =
+function QueryStringParser$parseString(str) {
+    var maxKeys = QueryStringParser.maxKeys;
+    var keys = 0;
     var decodeKey = false;
     var decodeValue = false;
     var possiblyNested = CERTAINLY_NOT_NESTED;
@@ -294,7 +306,7 @@ function parseString(str) {
             keyEnd = i - 1;
             valueEnd = valueStart = j;
             var key = str.slice(keyStart, keyEnd + 1);
-            key = decode(key, decodeKey, containsPlus);
+            key = this.decode(key, decodeKey, containsPlus);
             decodeKey = false;
 
             for (; j < len; ++j) {
@@ -312,14 +324,19 @@ function parseString(str) {
                     }
 
                     var value = str.slice(valueStart, valueEnd + 1);
-                    value = decode(value, decodeValue, containsPlus);
+                    value = this.decode(value, decodeValue, containsPlus);
 
-                    placeValue(dictionary, key, value, possiblyNested);
+                    this.placeValue(dictionary, key, value, possiblyNested);
 
                     containsPlus = decodeValue = false;
                     possiblyNested = CERTAINLY_NOT_NESTED;
 
                     keyStart = j + 1;
+                    keys++;
+                    if (keys > maxKeys) {
+                        throw new RangeError("Amount of keys is too large " +
+                            "(QueryStringParser.maxKeys=" + maxKeys + ")");
+                    }
                     break;
                 }
             }
@@ -332,17 +349,15 @@ function parseString(str) {
     if (keyStart !== len) {
         var value = "";
         var key = str.slice(keyStart, len);
-        key = decode(key, decodeKey, containsPlus);
-        placeValue(dictionary, key, value, possiblyNested);
+        key = this.decode(key, decodeKey, containsPlus);
+        this.placeValue(dictionary, key, value, possiblyNested);
     }
 
 
-    if (containsSparse) {
+    if (this.containsSparse) {
         //This behavior is pretty stupid but what you gonna do
-        compact(dictionary);
+        this.compact(dictionary);
     }
 
     return dictionary;
-}
-
-module.exports = QueryStringParser;
+};
