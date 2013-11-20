@@ -105,7 +105,8 @@ module.exports = function( grunt ) {
 
             files: {
                 src: [
-                    "./src/querystringparser.js"
+                    "./src/querystringparser.js",
+                    "./src/querystringserializer.js"
                 ]
             }
         }
@@ -139,13 +140,16 @@ module.exports = function( grunt ) {
     grunt.registerTask( "build", function() {
         var fs = require("fs");
         var CONSTANTS_FILE = "./src/constants.js";
-        var fileName = "querystringparser.js";
+
         astPasses.readConstants(fs.readFileSync(CONSTANTS_FILE, "utf8"), CONSTANTS_FILE);
-        var src = fs.readFileSync("./src/" + fileName, "utf8");
-        src = astPasses.removeComments(src, fileName);
-        src = astPasses.expandConstants(src, fileName);
-        src = getLicense() + src;
-        writeFile("./js/" + fileName, src);
+        var fileNames = ["querystringparser.js", "querystringserializer.js"];
+        fileNames.forEach(function(fileName){
+            var src = fs.readFileSync("./src/" + fileName, "utf8");
+            src = astPasses.removeComments(src, fileName);
+            src = astPasses.expandConstants(src, fileName);
+            src = getLicense() + src;
+            writeFile("./js/" + fileName, src);
+        });
     });
 
     grunt.registerTask( "testrun", function() {

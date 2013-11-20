@@ -13,7 +13,7 @@ function suite(queryStr, lib) {
         lib = "querystringparser";
     }
     var d = B.pending();
-    var args = ["--expose_gc", "base.js", lib, queryStr];
+    var args = ["--expose_gc", "stringify.js", lib, JSON.stringify(queryStr)];
     var p = cp.spawn("node", args, {stdio: stdio});
     p.on('exit', d.fulfill.bind(d));
     return d.promise.then(function(){
@@ -44,15 +44,33 @@ function printPlatform() {
 
 printPlatform();
 
-suite('a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3&a[]=3')
-.then(function(){
-    return suite('foo=bar');
+suite({
+    cht: 'p3',
+    chd: 't:60,40',
+    chs: '250x100',
+    chl: 'Hello|World'
 })
 .then(function(){
-    return suite('user[name][first]=tj&user[name][last]=holowaychuk');
+    return suite({
+    'foo': ['bar'],
+    'baz': ['1', '2', '3']
+    });
 })
 .then(function(){
-    return suite('a[]=1&a[]=2&a[]=3');
+    return suite({
+        'x': {
+            'y': [{
+                'z': '1',
+                'w': '2'
+            }]
+        }
+    });
+})
+.then(function(){
+    return suite({
+        'foo': 'bar',
+        'bar': 'baz'
+    });
 });
 
 

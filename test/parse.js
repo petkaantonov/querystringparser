@@ -1,3 +1,24 @@
+//Tests based on node-querystring tests
+/*
+Copyright (c) 2010 TJ Holowaychuk <tj@vision-media.ca>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the 'Software'), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+the Software, and to permit persons to whom the Software is furnished to do so,
+subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
 var qs = require('../js/querystringparser.js');
 var expect = require('expect.js');
 var assert = require("assert");
@@ -265,13 +286,29 @@ describe('qs.parse()', function () {
         });
     })
 
-    /*it('should support semi-parsed strings', function(){
-    expect(qs.parse({ 'user[name]': 'tobi' }))
-      .to.eql({ user: { name: 'tobi' }});
+    it('should support semi-parsed strings', function () {
+        expect(qs.parse({
+            'user[name]': 'tobi'
+        }))
+            .to.eql({
+                user: {
+                    name: 'tobi'
+                }
+            });
 
-    expect(qs.parse({ 'user[name]': 'tobi', 'user[email][main]': 'tobi@lb.com' }))
-      .to.eql({ user: { name: 'tobi', email: { main: 'tobi@lb.com' } }});
-  })*/
+        expect(qs.parse({
+            'user[name]': 'tobi',
+            'user[email][main]': 'tobi@lb.com'
+        }))
+            .to.eql({
+                user: {
+                    name: 'tobi',
+                    email: {
+                        main: 'tobi@lb.com'
+                    }
+                }
+            });
+    })
 
     it('should not produce empty keys', function () {
         expect(qs.parse('_r=1&'))

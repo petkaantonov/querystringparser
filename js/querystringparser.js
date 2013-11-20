@@ -20,6 +20,7 @@
  * THE SOFTWARE.
  */
 "use strict";
+var QueryStringSerializer = require("./querystringserializer.js");
 module.exports = QueryStringParser;
 
 var rplus = /\+/g;
@@ -49,7 +50,17 @@ QueryStringParser.parse = function QueryStringParser$Parse(str) {
         var parser = new QueryStringParser();
         return parser.parseString(str);
     }
+    else if (str !== null && typeof str === "object") {
+        var parser = new QueryStringParser();
+        return parser.parseObject(str);
+    }
     return {};
+};
+
+QueryStringParser.stringify =
+function QueryStringParser$Stringify(value) {
+    var serializer = new QueryStringSerializer();
+    return serializer.serialize(value);
 };
 
 QueryStringParser.prototype.decode =
@@ -283,6 +294,25 @@ function QueryStringParser$compact(obj) {
     else {
         return obj;
     }
+};
+
+QueryStringParser.prototype.parseObject =
+function QueryStringParser$parseObject(obj) {
+    var keys = Object.keys(obj);
+    var len = keys.length;
+    if (len === 0) {
+        return {};
+    }
+    len--;
+    var ret = "";
+    var key;
+    for( var i = 0; i < len; ++i ) {
+        key = keys[i];
+        ret += key + "=" + obj[key] + "&";
+    }
+    key = keys[i];
+    ret += key + "=" + obj[key];
+    return this.parseString(ret);
 };
 
 QueryStringParser.prototype.parseString =

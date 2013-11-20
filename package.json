@@ -1,26 +1,29 @@
 {
-  "name": "cookieparser",
-  "description": "cookieparser",
+  "name": "querystringparser",
+  "description": "Extremely fast querystring parser",
   "version": "0.0.1",
   "keywords": [
-    "cookie",
+    "qs",
+    "querystring",
+    "query-string",
+    "form-encoding",
+    "request-body",
     "parse",
     "parser",
     "serialize",
     "serializer",
-    "cookies",
     "key-value"
   ],
   "scripts": {
     "test": "grunt test"
   },
-  "homepage": "https://github.com/petkaantonov/cookieparser",
+  "homepage": "https://github.com/petkaantonov/querystringparser",
   "repository": {
     "type": "git",
-    "url": "git://github.com/petkaantonov/cookieparser.git"
+    "url": "git://github.com/petkaantonov/querystringparser.git"
   },
   "bugs": {
-    "url": "http://github.com/petkaantonov/cookieparser/issues"
+    "url": "http://github.com/petkaantonov/querystringparser/issues"
   },
   "license": "MIT",
   "author": {
@@ -42,5 +45,5 @@
     "benchmark": "latest"
   },
   "readmeFilename": "README.md",
-  "main": "./js/cookieparser.js"
+  "main": "./js/querystringparser.js"
 }
