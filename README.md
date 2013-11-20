@@ -75,8 +75,8 @@ Input:
 
 Results:
 
-   querystringparser x 336,640 ops/sec ±0.13% (95 runs sampled)
-   qs x 77,368 ops/sec ±0.16% (100 runs sampled)
+    querystringparser x 336,640 ops/sec ±0.13% (95 runs sampled)
+    qs x 77,368 ops/sec ±0.16% (100 runs sampled)
 
 Input:
 
