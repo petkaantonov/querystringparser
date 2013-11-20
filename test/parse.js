@@ -101,6 +101,7 @@ describe('qs.parse()', function(){
     expect(qs.parse('foo[1]=bar&foo[0]=baz')).to.eql({ foo: ['baz', 'bar'] });
     expect(qs.parse('foo[base64]=RAWR')).to.eql({ foo: { base64: 'RAWR' }});
     expect(qs.parse('foo[64base]=RAWR')).to.eql({ foo: { '64base': 'RAWR' }});
+     expect(qs.parse('a[]=0&a[]=1&a[]=2')).to.eql({ a: ['0', '1', '2'] });
   })
 
   it('should expand to an array when dupliate keys are present', function(){

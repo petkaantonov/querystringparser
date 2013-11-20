@@ -137,19 +137,39 @@ function placeNestedValue(dictionary, key, value, i, prevKey, curKey) {
     }
 }
 
+var cacheKey = "";
+var cacheVal = null;
 function insert(dictionary, key, value) {
+    var ret = null;
     if (haveProp.call(dictionary, key)) {
         var prev = dictionary[key];
         if( isArray(prev) ) {
             prev.push(value);
+            ret = prev;
         }
         else {
-            dictionary[key] = [prev, value];
+            ret = [prev, value];
+            dictionary[key] = ret;
         }
     }
     else {
         dictionary[key] = value;
     }
+    return ret;
+}
+
+function push(dictionary, key, value) {
+    var ret = null;
+    if (haveProp.call(dictionary, key)) {
+        var prev = dictionary[key];
+        prev.push(value);
+        ret = prev;
+    }
+    else {
+        ret = [value];
+        dictionary[key] = ret;
+    }
+    return ret;
 }
 
 function maybePlaceNestedValue(dictionary, key, value) {
@@ -186,7 +206,20 @@ function maybePlaceNestedValue(dictionary, key, value) {
         placeValue(dictionary, key, value, CERTAINLY_NOT_NESTED);
         return;
     }
-    placeNestedValue(dictionary, key, value, i, prevKey, curKey);
+
+    if (curKey === "" && value !== "" && i === len) {
+        //speed up key[]=1&key[]=2&key[]=3&key[]=4...
+        if (key === cacheKey) {
+            cacheVal.push(value);
+        }
+        else {
+            cacheKey = key;
+            cacheVal = push(dictionary, prevKey, value);
+        }
+    }
+    else {
+        placeNestedValue(dictionary, key, value, i, prevKey, curKey);
+    }
 }
 
 function placeValue(dictionary, key, value, possiblyNested) {
@@ -195,7 +228,15 @@ function placeValue(dictionary, key, value, possiblyNested) {
         maybePlaceNestedValue(dictionary, key, value);
         return;
     }
-    insert(dictionary, key, value);
+    if (key === cacheKey) {
+        cacheVal.push(value);
+        return;
+    }
+    var cache = insert(dictionary, key, value);
+    if (cache !== null) {
+        cacheKey = key;
+        cacheVal = cache;
+    }
 }
 
 function compact(obj) {
@@ -221,6 +262,7 @@ function compact(obj) {
 
 function parseString(str) {
     containsSparse = false;
+    cacheKey = "";
     var decodeKey = false;
     var decodeValue = false;
     var possiblyNested = CERTAINLY_NOT_NESTED;
