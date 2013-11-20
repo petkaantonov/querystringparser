@@ -8,12 +8,19 @@ var stdio = [
     process.stderr
 ];
 
-function suite(queryStr) {
+function suite(queryStr, lib) {
+    if (!lib) {
+        lib = "querystringparser";
+    }
     var d = B.pending();
-    var args = ["--expose_gc", "base.js", queryStr];
+    var args = ["--expose_gc", "base.js", lib, queryStr];
     var p = cp.spawn("node", args, {stdio: stdio});
     p.on('exit', d.fulfill.bind(d));
-    return d.promise;
+    return d.promise.then(function(){
+        if(lib === "querystringparser") {
+            return suite(queryStr, "qs");
+        }
+    });
 }
 
 function printPlatform() {
