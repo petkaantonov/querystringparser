@@ -338,6 +338,13 @@ describe('qs.parse()', function () {
         })
     }
 
+    it("should not decode objects", function() {
+        var result = qs.parse({ 'test%20[name]': 'a+test' });
+        expect(result["test%20"].name).to.be("a+test");
+        var result = qs.parse({ 'test%20[name]': 'a%20test' });
+        expect(result["test%20"].name).to.be("a%20test");
+    });
+
 
     it("should have conclusive DoS protection", function () {
         assert(qs.maxKeys === 256);

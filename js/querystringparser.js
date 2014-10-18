@@ -48,7 +48,7 @@ QueryStringParser.parse = function QueryStringParser$Parse(str) {
             );
         }
         var parser = new QueryStringParser();
-        return parser.parseString(str);
+        return parser.parseString(str, false);
     }
     else if (str !== null && typeof str === "object") {
         var parser = new QueryStringParser();
@@ -312,11 +312,11 @@ function QueryStringParser$parseObject(obj) {
     }
     key = keys[i];
     ret += key + "=" + obj[key];
-    return this.parseString(ret);
+    return this.parseString(ret, true);
 };
 
 QueryStringParser.prototype.parseString =
-function QueryStringParser$parseString(str) {
+function QueryStringParser$parseString(str, noDecode) {
     var maxKeys = QueryStringParser.maxKeys;
     var keys = 0;
     var decodeKey = false;
@@ -355,7 +355,7 @@ function QueryStringParser$parseString(str) {
 
             for (; j < len; ++j) {
                 ch = str.charCodeAt(j);
-                if (ch === 43 || ch === 37) {
+                if ((ch === 43 || ch === 37) && !noDecode) {
                     if (ch === 43) containsPlus = true;
                     decodeValue = true;
                 }
@@ -385,7 +385,7 @@ function QueryStringParser$parseString(str) {
                 }
             }
         }
-        else if (ch === 43 || ch === 37) {
+        else if ((ch === 43 || ch === 37) && !noDecode) {
             if (ch === 43) containsPlus = true;
             decodeKey = true;
         }
